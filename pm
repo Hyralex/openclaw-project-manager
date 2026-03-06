@@ -82,10 +82,10 @@ Quick Start:
   pm task kanban
 
 Examples:
-  pm task add "Fix bug" --project thenexus
+  pm task add "Fix bug" --project my-project
   pm task move task-001 in-progress
   pm memory save "Learned something important"
-  pm session attach agent:coder:discord:...
+  pm session attach <session-key>
 `);
 }
 
