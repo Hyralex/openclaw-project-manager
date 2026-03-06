@@ -39,6 +39,12 @@ function getProjectName(projectArg) {
   const active = pm.getActiveProject();
   if (!active) {
     console.error('No active project. Use: project switch <name>');
+    console.error('Available projects:');
+    const projects = pm.listProjects();
+    projects.forEach(p => {
+      const taskCount = p.tasks?.length || 0;
+      console.error(`  - ${p.name} (${taskCount} tasks)`);
+    });
     process.exit(1);
   }
   return active.name;

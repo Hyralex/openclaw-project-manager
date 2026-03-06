@@ -52,6 +52,27 @@ switch (command) {
       console.error('Usage: project create <name>');
       process.exit(1);
     }
+    
+    const data = pm.loadProjects();
+    
+    // Check for similar existing projects
+    const similarProjects = Object.keys(data.projects).filter(key => 
+      key.toLowerCase().includes(name.toLowerCase()) || 
+      name.toLowerCase().includes(key.toLowerCase())
+    );
+    
+    if (similarProjects.length > 0) {
+      console.warn(`⚠️  Warning: Similar project(s) already exist:`);
+      similarProjects.forEach(p => {
+        const taskCount = data.projects[p].tasks?.length || 0;
+        console.warn(`   - ${p} (${taskCount} tasks)`);
+      });
+      console.warn(`\n   Did you mean to use an existing project?`);
+      console.warn(`   Use: pm project switch <name>`);
+      console.warn(`   Or: pm task add "title" --project <existing-name>`);
+      console.warn(`\n   Creating "${name}" anyway...\n`);
+    }
+    
     const project = pm.getProject(name);
     console.log(`✓ Created project: ${project.name}`);
     console.log(`  Path: ${project.path}`);
