@@ -70,6 +70,26 @@ switch (command) {
     console.log(`✓ Switched to project: ${result.project.name}`);
     console.log(`  Path: ${result.project.path}`);
     console.log(`  Tasks: ${result.project.tasks?.length || 0} total`);
+    
+    // Auto-load context for the agent
+    const fs = require('fs');
+    const path = require('path');
+    const agentsPath = path.join(result.project.path, 'AGENTS.md');
+    const contextPath = path.join(result.project.path, 'context.md');
+    
+    if (fs.existsSync(agentsPath)) {
+      const agentsContent = fs.readFileSync(agentsPath, 'utf-8');
+      console.log('\n📋 PROJECT CONTEXT (AGENTS.md):');
+      console.log('─'.repeat(50));
+      console.log(agentsContent.substring(0, 1500) + (agentsContent.length > 1500 ? '\n... (truncated)' : ''));
+      console.log('─'.repeat(50));
+    } else if (fs.existsSync(contextPath)) {
+      const contextContent = fs.readFileSync(contextPath, 'utf-8');
+      console.log('\n📋 PROJECT CONTEXT (context.md):');
+      console.log('─'.repeat(50));
+      console.log(contextContent.substring(0, 1000) + (contextContent.length > 1000 ? '\n... (truncated)' : ''));
+      console.log('─'.repeat(50));
+    }
     break;
   }
   

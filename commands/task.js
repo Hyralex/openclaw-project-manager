@@ -140,6 +140,30 @@ switch (command) {
     try {
       const task = pm.moveTask(projectName, taskId, status);
       console.log(`✓ Task ${task.id} moved to ${status}`);
+      
+      // Auto-load context when starting work (moving to in-progress)
+      if (status === 'in-progress') {
+        const fs = require('fs');
+        const path = require('path');
+        const project = pm.getProject(projectName);
+        const agentsPath = path.join(project.path, 'AGENTS.md');
+        const contextPath = path.join(project.path, 'context.md');
+        
+        console.log('\n🚀 STARTING WORK - Here\'s what you need to know:');
+        console.log('─'.repeat(50));
+        
+        if (fs.existsSync(agentsPath)) {
+          const agentsContent = fs.readFileSync(agentsPath, 'utf-8');
+          console.log(agentsContent.substring(0, 1500) + (agentsContent.length > 1500 ? '\n... (truncated, read full AGENTS.md for more)' : ''));
+        } else if (fs.existsSync(contextPath)) {
+          const contextContent = fs.readFileSync(contextPath, 'utf-8');
+          console.log(contextContent.substring(0, 1000) + (contextContent.length > 1000 ? '\n... (truncated)' : ''));
+        } else {
+          console.log('No AGENTS.md or context.md found for this project.');
+        }
+        
+        console.log('─'.repeat(50));
+      }
     } catch (e) {
       console.error(e.message);
       process.exit(1);
