@@ -53,29 +53,37 @@ function getProjectName(projectArg) {
 switch (command) {
   case 'add':
   case 'create': {
-    // Parse arguments: --project <name> "title" or "title" --project <name>
+    // Parse arguments: --project <name> "title" --skip-refinement
     let projectName = null;
     let title = null;
+    let skipRefinement = false;
     
     for (let i = 0; i < args.length; i++) {
       if (args[i] === '--project' && args[i + 1]) {
         projectName = args[++i];
+      } else if (args[i] === '--skip-refinement') {
+        skipRefinement = true;
       } else if (!title && !args[i].startsWith('--')) {
         title = args[i];
       }
     }
     
     if (!title) {
-      console.error('Usage: task add "task title" [--project <name>]');
+      console.error('Usage: task add "task title" [--project <name>] [--skip-refinement]');
       process.exit(1);
     }
     
     projectName = getProjectName(projectName);
-    const task = pm.addTask(projectName, title);
+    const task = pm.addTask(projectName, title, '', skipRefinement);
     console.log(`✓ Task created: ${task.id}`);
     console.log(`  Project: ${projectName}`);
     console.log(`  Title: ${task.title}`);
     console.log(`  Status: ${task.status}`);
+    if (task.refined) {
+      console.log(`  ✨ Refined: Yes (auto-refined)`);
+    } else if (task.skipRefinement) {
+      console.log(`  ⚡ Quick task (refinement skipped)`);
+    }
     break;
   }
   
@@ -286,9 +294,73 @@ switch (command) {
     console.log(`  Description: ${task.description || '(none)'}`);
     console.log(`  Status: ${task.status}`);
     console.log(`  Created: ${new Date(task.createdAt).toLocaleString()}`);
+    if (task.refined) {
+      console.log(`  ✨ Refined: Yes (${new Date(task.refinedAt).toLocaleString()})`);
+    }
     if (task.completedAt) {
       console.log(`  Completed: ${new Date(task.completedAt).toLocaleString()}`);
     }
+    break;
+  }
+  
+  case 'refine': {
+    // task refine <id> [--project <name>] [--force]
+    let projectName = null;
+    let taskId = null;
+    let force = false;
+    
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--project' && args[i + 1]) {
+        projectName = args[++i];
+      } else if (args[i] === '--force') {
+        force = true;
+      } else if (!taskId) {
+        taskId = args[i];
+      }
+    }
+    
+    if (!taskId) {
+      console.error('Usage: task refine <id> [--project <name>] [--force]');
+      process.exit(1);
+    }
+    
+    projectName = getProjectName(projectName);
+    const task = pm.getTask(projectName, taskId);
+    
+    if (!task) {
+      console.error(`Task ${taskId} not found`);
+      process.exit(1);
+    }
+    
+    if (task.refined && !force) {
+      console.log(`⚠️  Task ${taskId} is already refined. Use --force to re-refine.`);
+      process.exit(0);
+    }
+    
+    // Store original description if not already stored
+    if (!task.originalDescription) {
+      task.originalDescription = task.description;
+    }
+    
+    // Perform refinement
+    task.description = pm.refineTaskDescription(task.title, task.description || '', projectName);
+    task.refined = true;
+    task.refinedAt = new Date().toISOString();
+    task.refinedBy = 'agent:coder:pm-manual-refine';
+    task.updatedAt = new Date().toISOString();
+    task.skipRefinement = false;
+    
+    // Save the updated task
+    const data = pm.loadProjects();
+    const project = data.projects[projectName];
+    const taskIndex = project.tasks.findIndex(t => t.id === taskId);
+    if (taskIndex !== -1) {
+      project.tasks[taskIndex] = task;
+      pm.saveProjects(data);
+    }
+    
+    console.log(`✓ Task ${taskId} refined successfully!`);
+    console.log(`  Original description preserved for reference.`);
     break;
   }
   
@@ -327,13 +399,20 @@ switch (command) {
 Project Manager - Task Commands
 
 Usage:
-  task add "title" [--project <name>]           Add a new task
-  task list [--project <name>]                  List all tasks
-  task move <id> <status>                       Move task (todo/in-progress/done)
-  task complete <id> [--message "summary"]      Mark task as done
-  task delete <id>                              Delete a task
-  task info <id>                                Show task details
-  task kanban                                   Show kanban view
+  task add "title" [--project <name>] [--skip-refinement]  Add a new task
+  task list [--project <name>]                             List all tasks
+  task move <id> <status>                                  Move task (todo/in-progress/done)
+  task complete <id> [--message "summary"]                 Mark task as done
+  task delete <id>                                         Delete a task
+  task info <id>                                           Show task details
+  task refine <id> [--force]                               Refine task description
+  task kanban                                              Show kanban view
+
+Refinement:
+  - Tasks with short descriptions (<50 chars) are auto-refined
+  - Use --skip-refinement to create quick tasks without refinement
+  - Use 'task refine' to manually refine an existing task
+  - Use --force to re-refine an already refined task
 
 Tips:
   - Use --message with complete to save a summary to memory

@@ -165,3 +165,17 @@ pm task complete task-004 --message "Added agent selection modal and subagent sp
 3. **Tell them to complete the task** - Explicitly state this as the last step
 4. **Provide the exact command** - Make it copy-paste easy
 5. **Include technical context** - Tech stack, files, APIs, etc.
+
+## ⚠️ Testing Rule
+
+**CRITICAL:** When testing task creation or refinement:
+- ✅ **USE:** `testproject` - Created for testing
+- ❌ **NEVER USE:** `thenexus` - Production project
+
+```bash
+pm project switch testproject  # Before testing
+pm task add "Test" --project testproject
+pm task delete task-XXX --project testproject  # Clean up
+```
+
+This keeps TheNexus dashboard clean!

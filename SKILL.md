@@ -1,3 +1,8 @@
+---
+name: project-manager
+description: "Multi-project task and memory management for OpenClaw agents. Create projects, switch contexts, manage tasks with kanban, and save project-specific memories."
+---
+
 # Project Manager Skill
 
 Multi-project task and memory management for OpenClaw agents.
