@@ -210,6 +210,25 @@ TheNexus dashboard reads from `~/dev/projects/projects.json` to display:
 - ✅ Project isolation (no cross-contamination)
 - ✅ All agents share same data source
 
+## ⚠️ Task-Queue Skill Conflict (RESOLVED)
+
+**Problem:** The `task-queue` skill (for Tasker agent) was conflicting with project-manager because both use "task" terminology.
+
+**Solution:** The `task-queue` skill has been **disabled** (renamed to `task-queue.DISABLED`).
+
+**If you see confusion:**
+- `task-XXX` (lowercase) → Project Manager (THIS skill) ✅
+- `TASK-XXX` (uppercase) → Tasker Queue (DISABLED) ❌
+- `~/dev/projects/` → Project Manager ✅
+- `~/dev/task-agent/` → Tasker Queue ❌
+
+**To re-enable task-queue (not recommended):**
+```bash
+mv ~/.openclaw/skills/task-queue.DISABLED ~/.openclaw/skills/task-queue
+```
+
+But be aware this may cause confusion again!
+
 ## Spawning Subagents for Tasks
 
 When spawning a subagent to work on a project task, **always include**:
