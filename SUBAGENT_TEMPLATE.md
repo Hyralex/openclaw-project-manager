@@ -2,7 +2,29 @@
 
 ## When to Use
 
-When spawning a subagent to work on a task from the project manager system.
+When spawning a subagent to work on a task from the **Project Manager** system (`~/dev/projects/`).
+
+## ⚠️ IMPORTANT: Not Task-Queue!
+
+**This is NOT the Tasker queue system!** There are two different task systems:
+
+| Project Manager (THIS) | Task-Queue (DISABLED) |
+|------------------------|----------------------|
+| `~/dev/projects/` | `~/dev/task-agent/` |
+| `pm` CLI commands | `tasker` commands |
+| Multi-project Kanban | Single queue for Tasker agent |
+| `projects.json` | `todo-queue.md` |
+| Tasks: `task-001`, `task-002` | Tasks: `TASK-001`, `TASK-002` |
+
+**If you see references to:**
+- `todo-queue.md` → Wrong system!
+- `TASK-XXX` (uppercase) → Wrong system!
+- `tasker` → Wrong system!
+
+**You should be using:**
+- `~/dev/projects/` → Correct!
+- `pm` commands → Correct!
+- `task-XXX` (lowercase) → Correct!
 
 ## Template Structure
 
@@ -71,6 +93,8 @@ How to verify your work:
 ## Example: Task-004
 
 ```markdown
+**CRITICAL: You are working on TheNexus Project Manager tasks, NOT the Tasker queue!**
+
 **Task-004:** "Add the ability in the UI to start a task"
 
 **Full Description:**
@@ -81,7 +105,7 @@ How to verify your work:
 This task is tracked in the **Project Manager** system at `~/dev/projects/`.
 
 **Project:** thenexus
-**Task ID:** task-004
+**Task ID:** task-004 (lowercase!)
 **Location:** /home/azureuser/dev/TheNexus
 
 ## Available Commands
