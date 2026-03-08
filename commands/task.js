@@ -451,29 +451,34 @@ switch (command) {
   }
 
   case 'archive': {
-    // task archive [--project <name>] [--dry-run]
+    // task archive [--project <name>] [--dry-run] [--per-project]
     let projectName = null;
     let dryRun = false;
+    let perProject = false;
 
     for (let i = 0; i < args.length; i++) {
       if (args[i] === '--project' && args[i + 1]) {
         projectName = args[++i];
       } else if (args[i] === '--dry-run') {
         dryRun = true;
+      } else if (args[i] === '--per-project') {
+        perProject = true;
       }
     }
 
-    projectName = getProjectName(projectName);
     try {
-      const result = pm.archiveTasks(projectName, dryRun);
+      // Global mode by default (perProject = false means global)
+      const result = pm.archiveTasks(projectName, dryRun, !perProject);
 
       if (dryRun) {
-        console.log(`📦 Archive Preview for ${projectName}:`);
+        const scope = perProject ? projectName : 'all projects';
+        console.log(`📦 Archive Preview for ${scope}:`);
         console.log(`   ${result.message}`);
         if (result.toArchive && result.toArchive.length > 0) {
           console.log('\n   Tasks that would be archived:');
           result.toArchive.forEach(t => {
-            console.log(`     - ${t.id}: ${t.title} (completed: ${new Date(t.completedAt).toLocaleDateString()})`);
+            const projectInfo = t.project ? ` (${t.project})` : '';
+            console.log(`     - ${t.id}: ${t.title}${projectInfo} (completed: ${new Date(t.completedAt).toLocaleDateString()})`);
           });
         }
         console.log(`\n   Tasks that would be kept: ${result.kept} most recent completed`);
@@ -504,7 +509,7 @@ Usage:
   task refine <id> [--force]                               Refine task description
   task kanban                                              Show kanban view
   task session attach <id> <key> [--type work|refinement]  Attach session to task
-  task archive [--project <name>] [--dry-run]              Archive completed tasks (keep last ${pm.MAX_COMPLETED_TO_KEEP})
+  task archive [--project <name>] [--dry-run] [--per-project]  Archive completed tasks (global: keep last ${pm.MAX_COMPLETED_TO_KEEP} across all projects)
 
 Session Tracking:
   - Attach your work session at the start: task session attach task-123 <session-key>
@@ -518,7 +523,8 @@ Refinement:
   - Use --force to re-refine an already refined task
 
 Archive:
-  - Moves completed tasks older than the last ${pm.MAX_COMPLETED_TO_KEEP} to archived-tasks.json
+  - By default: keeps last ${pm.MAX_COMPLETED_TO_KEEP} completed tasks ACROSS ALL PROJECTS (global)
+  - Use --per-project: keeps last ${pm.MAX_COMPLETED_TO_KEEP} completed tasks PER PROJECT (legacy)
   - Use --dry-run to preview what would be archived
   - Archived tasks are preserved with project reference for future lookup
 
